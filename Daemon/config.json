@@ -1,0 +1,6 @@
+{
+    "debug": true,
+    "nats_url": "nats://nats:4222",
+    "subject": "event",
+    "event_frequency_ms": 1000
+}

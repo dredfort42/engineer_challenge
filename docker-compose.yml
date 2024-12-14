@@ -1,0 +1,110 @@
+networks:
+    nats_net:
+        driver: bridge
+    influxdb2_net:
+        driver: bridge
+
+services:
+    ### NATS server
+    #
+    # Official image: https://hub.docker.com/_/nats
+    # Documentation: https://docs.nats.io/running-a-nats-service/nats_docker
+    #
+    nats:
+        image: nats:latest
+        hostname: nats
+        container_name: nats
+        restart: always
+        networks:
+            - nats_net
+        ports:
+            - '4222:4222'
+            # - '6222:6222'
+            # - '8222:8222'
+
+    ### NATS test sub client
+    #
+    nats_box_sub:
+        image: natsio/nats-box
+        hostname: nats_box_sub
+        container_name: nats_box_sub
+        restart: always
+        networks:
+            - nats_net
+        depends_on:
+            - nats
+        command: nats sub -s nats:4222 event &
+
+    ### NATS test pub client
+    #
+    nats_box_pub:
+        image: natsio/nats-box
+        hostname: nats_box_pub
+        container_name: nats_box_pub
+        restart: always
+        networks:
+            - nats_net
+        depends_on:
+            - nats
+        command: nats pub -s nats:4222 event "Hello, World!"
+
+    ### InfluxDB 2.0
+    #
+    # Official image: https://hub.docker.com/_/influxdb
+    # Documentation: https://docs.influxdata.com/influxdb/v2.0/use-docker-compose/
+    #
+    influxdb2:
+        image: influxdb:2
+        hostname: influxdb2
+        container_name: influxdb2
+        restart: always
+        networks:
+            - influxdb2_net
+        ports:
+            - 8086:8086
+        environment:
+            DOCKER_INFLUXDB_INIT_MODE: setup
+            DOCKER_INFLUXDB_INIT_USERNAME_FILE: /run/secrets/influxdb2-admin-username
+            DOCKER_INFLUXDB_INIT_PASSWORD_FILE: /run/secrets/influxdb2-admin-password
+            DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE: /run/secrets/influxdb2-admin-token
+            DOCKER_INFLUXDB_INIT_ORG: docs
+            DOCKER_INFLUXDB_INIT_BUCKET: home
+        secrets:
+            - influxdb2-admin-username
+            - influxdb2-admin-password
+            - influxdb2-admin-token
+        volumes:
+            - type: volume
+              source: influxdb2-data
+              target: /var/lib/influxdb2
+            - type: volume
+              source: influxdb2-config
+              target: /etc/influxdb2
+
+    ##### SERVICES #####
+
+    ### Daemon
+    #
+    daemon:
+        build: ./Daemon
+        hostname: daemon
+        container_name: daemon
+        restart: always
+        networks:
+            - nats_net
+        volumes:
+            - ./configs/daemon_config.json:/app/config.json
+        depends_on:
+            - nats
+
+secrets:
+    influxdb2-admin-username:
+        file: ./secrets/.env.influxdb2-admin-username
+    influxdb2-admin-password:
+        file: ./secrets/.env.influxdb2-admin-password
+    influxdb2-admin-token:
+        file: ./secrets/.env.influxdb2-admin-token
+
+volumes:
+    influxdb2-data:
+    influxdb2-config:
