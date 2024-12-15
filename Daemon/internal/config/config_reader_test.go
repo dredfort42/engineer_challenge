@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"testing"
 )
@@ -9,93 +8,124 @@ import (
 // Mock configuration file data for testing
 const validConfig = `{
 	"debug": true,
-	"nats_url": "nats://localhost:4222",
-	"subject": "test.subject",
+	"nats_url": "nats://validConfig:4222",
+	"subject": "validConfig.subject",
 	"event_frequency_ms": 100
+}`
+
+const validConfigNoDebug = `{
+	"nats_url": "nats://validConfigNoDebug:4222",
+	"subject": "validConfigNoDebug.subject",
+	"event_frequency_ms": 1000
 }`
 
 const invalidConfigNoNATSURL = `{
 	"debug": true,
-	"subject": "test.subject",
-	"event_frequency_ms": 100
+	"subject": "invalidConfigNoNATSURL.subject",
+	"event_frequency_ms": 10000
 }`
 
 const invalidConfigNoSubject = `{
 	"debug": true,
-	"nats_url": "nats://localhost:4222",
-	"event_frequency_ms": 100
+	"nats_url": "nats://invalidConfigNoSubject:4222",
+	"event_frequency_ms": 100000
 }`
 
 const invalidEventFrequencyConfig = `{
-	"debug": true,
-	"nats_url": "nats://localhost:4222",
-	"subject": "test.subject",
-	"event_frequency_ms": 0
+	"debug": false,
+	"nats_url": "nats://invalidEventFrequencyConfig:4222",
+	"subject": "invalidEventFrequencyConfig.subject",
+	"event_frequency_ms": -42
 }`
 
-func writeTempFile(t *testing.T, content string) string {
-	tempFile, err := os.CreateTemp("", "config_*.json")
-	if err != nil {
-		t.Fatalf("Failed to create temp file: %v", err)
-	}
-	if _, err := tempFile.Write([]byte(content)); err != nil {
-		t.Fatalf("Failed to write temp file: %v", err)
-	}
-	tempFile.Close()
-	return tempFile.Name()
-}
-
 func TestReadConfig(t *testing.T) {
-	log.SetOutput(os.Stdout) // For testing log output if needed
-	t.Run("ValidConfig", func(t *testing.T) {
-		filePath := writeTempFile(t, validConfig)
-		defer os.Remove(filePath)
+	tests := []struct {
+		name     string
+		fileData string
+		expected Config
+		errMsg   string
+	}{
+		{
+			name:     "ValidConfig",
+			fileData: validConfig,
+			expected: Config{
+				Debug:            true,
+				NATSURL:          "nats://validConfig:4222",
+				Subject:          "validConfig.subject",
+				EventFrequencyMs: 100},
+			errMsg: "",
+		},
+		{
+			name:     "ValidConfigNoDebug",
+			fileData: validConfigNoDebug,
+			expected: Config{
+				Debug:            false,
+				NATSURL:          "nats://validConfigNoDebug:4222",
+				Subject:          "validConfigNoDebug.subject",
+				EventFrequencyMs: 1000},
+			errMsg: "",
+		},
+		{
+			name:     "MissingNATSURL",
+			fileData: invalidConfigNoNATSURL,
+			expected: Config{},
+			errMsg:   "invalid configuration",
+		},
+		{
+			name:     "MissingSubject",
+			fileData: invalidConfigNoSubject,
+			expected: Config{},
+			errMsg:   "invalid configuration",
+		},
+		{
+			name:     "InvalidEventFrequency",
+			fileData: invalidEventFrequencyConfig,
+			expected: Config{
+				Debug:            false,
+				NATSURL:          "nats://invalidEventFrequencyConfig:4222",
+				Subject:          "invalidEventFrequencyConfig.subject",
+				EventFrequencyMs: 1},
+			errMsg: "",
+		},
+		{
+			name:     "FileNotFound",
+			fileData: "",
+			expected: Config{},
+			errMsg:   "open non_existent_file.json: no such file or directory",
+		},
+	}
 
-		if err := ReadConfig(filePath); err != nil {
-			t.Errorf("Unexpected error reading valid config: %v", err)
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.fileData != "" {
+				tempFile, err := os.CreateTemp("./", "config_"+tt.name+".json")
+				if err != nil {
+					t.Fatalf("Failed to create temp file: %v", err)
+				}
+				defer os.Remove(tempFile.Name())
 
-		if DeamonConfig.NATSURL != "nats://localhost:4222" || DeamonConfig.Subject != "test.subject" || DeamonConfig.EventFrequencyMs != 100 {
-			t.Errorf("Config values not loaded properly: %+v", DeamonConfig)
-		}
-	})
+				if _, err := tempFile.Write([]byte(tt.fileData)); err != nil {
+					t.Fatalf("Failed to write temp file: %v", err)
+				}
 
-	t.Run("MissingNATSURL", func(t *testing.T) {
-		filePath := writeTempFile(t, invalidConfigNoNATSURL)
-		defer os.Remove(filePath)
+				tempFile.Close()
 
-		err := ReadConfig(filePath)
-		if err == nil || err.Error() != "invalid configuration" {
-			t.Errorf("Expected error for missing NATSURL, got: %v", err)
-		}
-	})
+				DeamonConfig = Config{}
 
-	t.Run("MissingSubject", func(t *testing.T) {
-		filePath := writeTempFile(t, invalidConfigNoSubject)
-		defer os.Remove(filePath)
-
-		err := ReadConfig(filePath)
-		if err == nil || err.Error() != "invalid configuration" {
-			t.Errorf("Expected error for missing Subject, got: %v", err)
-		}
-	})
-
-	// t.Run("InvalidEventFrequency", func(t *testing.T) {
-	// 	filePath := writeTempFile(t, invalidEventFrequencyConfig)
-	// 	defer os.Remove(filePath)
-
-	// 	if err := ReadConfig(filePath); err != nil {
-	// 		t.Errorf("Unexpected error for invalid event frequency: %v", err)
-	// 	}
-	// 	if DeamonConfig.EventFrequencyMs != 1 {
-	// 		t.Errorf("Expected event frequency to default to 1, got: %d", DeamonConfig.EventFrequencyMs)
-	// 	}
-	// })
-
-	// t.Run("FileNotFound", func(t *testing.T) {
-	// 	err := ReadConfig("non_existent_file.json")
-	// 	if err == nil || !errors.Is(err, os.ErrNotExist) {
-	// 		t.Errorf("Expected file not found error, got: %v", err)
-	// 	}
-	// })
+				err = ReadConfig(tempFile.Name())
+				if err != nil {
+					if err.Error() != tt.errMsg {
+						t.Errorf("Expected error %q, got: %v", tt.errMsg, err)
+					}
+				} else if DeamonConfig != tt.expected {
+					t.Errorf("Expected config %+v, got: %+v", tt.expected, DeamonConfig)
+				}
+			} else {
+				err := ReadConfig("non_existent_file.json")
+				if err == nil || err.Error() != tt.errMsg {
+					t.Errorf("Expected error %q, got: %v", tt.errMsg, err)
+				}
+			}
+		})
+	}
 }
