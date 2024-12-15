@@ -31,3 +31,6 @@ go.work.sum
 .vscode
 */.vscode
 _*
+
+# Persisted data
+storage/influxdb2-data
