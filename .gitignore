@@ -33,4 +33,6 @@ go.work.sum
 _*
 
 # Persisted data
-storage/influxdb2-data
+influxdb2-data/*
+
+influx-configs

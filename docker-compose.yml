@@ -42,6 +42,22 @@ services:
     #         - nats
     #     command: nats pub -s nats:4222 event "Hello, World!"
 
+    ### NATS test req client
+    #
+    # nats_box_req:
+    #     image: natsio/nats-box
+    #     hostname: nats_box_req
+    #     container_name: nats_box_req
+    #     restart: always
+    #     networks:
+    #         - nats_net
+    #     depends_on:
+    #         - nats
+    #     entrypoint: >
+    #         /bin/sh -c "
+    #         sleep 5 &&
+    #         nats req -s nats:4222 'query' '{\"last_events_count\": 20,  \"min_criticality\": 100000}'"
+
     ### InfluxDB 2.0
     #
     # Official image: https://hub.docker.com/_/influxdb
@@ -103,6 +119,22 @@ services:
         depends_on:
             - nats
 
+    ### Reader
+    #
+    reader:
+        build: ./Reader
+        hostname: reader
+        container_name: reader
+        restart: always
+        networks:
+            - nats_net
+            - influxdb2_net
+        volumes:
+            - ./configs/reader_config.json:/app/config.json
+            - ./secrets/.env.influxdb2-admin-token:/app/.env.influxdb2-admin-token
+        depends_on:
+            - nats
+
 secrets:
     influxdb2-admin-username:
         file: ./secrets/.env.influxdb2-admin-username
@@ -110,11 +142,6 @@ secrets:
         file: ./secrets/.env.influxdb2-admin-password
     influxdb2-admin-token:
         file: ./secrets/.env.influxdb2-admin-token
-
-# volumes:
-#     influxdb2-data:
-#         driver: local
-#     influxdb2-config:
 
 networks:
     nats_net:

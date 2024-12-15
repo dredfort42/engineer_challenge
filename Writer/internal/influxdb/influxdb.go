@@ -45,10 +45,13 @@ func WriteEventsToInfluxDB(events chan e.Event, ctx context.Context, cancel cont
 			}
 
 			// Create a new point with the event data
-			point := influxdb2.NewPointWithMeasurement(cfg.WriterConfig.InfluxMeasurement).
-				AddField("criticality", event.Criticality).
-				AddField("event_message", event.EventMessage).
-				SetTime(eventTime)
+			point := influxdb2.NewPoint(cfg.WriterConfig.InfluxMeasurement,
+				map[string]string{},
+				map[string]interface{}{
+					"criticality":   event.Criticality,
+					"event_message": event.EventMessage,
+				},
+				eventTime)
 
 			// Write the point to InfluxDB
 			if err := writeAPI.WritePoint(ctx, point); err != nil {
