@@ -33,6 +33,6 @@ go.work.sum
 _*
 
 # Persisted data
-*/storage
+storage/*
 
 influx-configs

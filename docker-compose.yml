@@ -103,6 +103,22 @@ services:
         depends_on:
             - nats
 
+    ### Client
+    #
+    client:
+        build: ./Client
+        hostname: client
+        container_name: client
+        restart: always
+        networks:
+            - nats_net
+        volumes:
+            - ./configs/client_config.json:/app/config.json
+        depends_on:
+            - nats
+        environment:
+            - MIN_CRITICALITY=100000
+
     ### Writer
     #
     writer:
