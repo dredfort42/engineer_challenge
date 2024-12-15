@@ -15,7 +15,7 @@ type Event struct {
 
 // GetRandomEvent generates a random event
 func GetRandomEvent() Event {
-	criticality := rand.Int() - rand.Int()
+	criticality := rand.Int() - rand.Int() - rand.Intn(2)
 
 	return Event{
 		Criticality:  criticality,

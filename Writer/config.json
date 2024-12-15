@@ -1,5 +1,10 @@
 {
     "debug": true,
-    "nats_url": "nats://nats:4222",
-    "subject": "event"
+    "nats_url": "nats://localhost:4222",
+    "subject": "event",
+    "influxdb_url": "http://localhost:8086",
+    "influxdb_org": "iot",
+    "influxdb_bucket": "events_bucket",
+    "influxdb_measurement": "event",
+    "path_to_influxdb_token": "./.env.influxdb2-token"
 }

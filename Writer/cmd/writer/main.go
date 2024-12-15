@@ -9,9 +9,13 @@ import (
 	"time"
 
 	cfg "writer/internal/config"
+	e "writer/internal/event"
+	idb "writer/internal/influxdb"
 
 	"github.com/nats-io/nats.go"
 )
+
+const MAX_EVENTS_QUEUE = 1000
 
 func main() {
 	log.Println("[STATE] starting")
@@ -22,8 +26,8 @@ func main() {
 	}
 
 	if cfg.WriterConfig.Debug {
-		log.Printf("Debug is enabled\nNATS URL: %s\nSubject: %s\n",
-			cfg.WriterConfig.NATSURL, cfg.WriterConfig.Subject)
+		log.Printf("Debug is enabled\nNATS URL: %s\nSubject: %s\nInfluxDB URL: %s\nInfluxDB Org: %s\nInfluxDB Bucket: %s\nInfluxDB Measurement: %s\nPath to InfluxDB Token: %s\n",
+			cfg.WriterConfig.NATSURL, cfg.WriterConfig.Subject, cfg.WriterConfig.InfluxURL, cfg.WriterConfig.InfluxOrg, cfg.WriterConfig.InfluxBucket, cfg.WriterConfig.InfluxMeasurement, cfg.WriterConfig.PathToInfluxToken)
 	}
 
 	log.Println("[STATE] initializing")
@@ -45,22 +49,36 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
+	// Create a channel for the received events
+	eventsChannel := make(chan e.Event, MAX_EVENTS_QUEUE)
+
 	// Subscribe to the subject
 	_, err = natsConnection.Subscribe(cfg.WriterConfig.Subject, func(msg *nats.Msg) {
 		if cfg.WriterConfig.Debug {
 			log.Printf("Received %s: %s\n", msg.Subject, string(msg.Data))
 		}
-		// Process the received message
 
+		// Store the received event in the list
+		if len(eventsChannel) < MAX_EVENTS_QUEUE {
+			event, err := e.GetEventFromJSON(string(msg.Data))
+			if err != nil {
+				log.Printf("Error parsing JSON: %v", err)
+			} else {
+				eventsChannel <- event
+			}
+		} else {
+			log.Println("Messages queue is full. Dropping the message.")
+		}
 	})
 	if err != nil {
 		log.Fatalf("Error subscribing to subject: %v", err)
 	}
 
+	go idb.WriteEventsToInfluxDB(eventsChannel, ctx, cancel)
+
 	// Generate a random event loop
 	for {
 		select {
-
 		case <-stateTicker.C:
 			log.Println("[STATE] running")
 

@@ -1,0 +1,20 @@
+[default]
+  url = "http://localhost:8086"
+  token = "bc643ccfb92f181188f1a9531b99b1e180a6cf303e97f215d03e147024fe1b8d"
+  org = "iot"
+  active = true
+# 
+# [eu-central]
+#   url = "https://eu-central-1-1.aws.cloud2.influxdata.com"
+#   token = "XXX"
+#   org = ""
+# 
+# [us-central]
+#   url = "https://us-central1-1.gcp.cloud2.influxdata.com"
+#   token = "XXX"
+#   org = ""
+# 
+# [us-west]
+#   url = "https://us-west-2-1.aws.cloud2.influxdata.com"
+#   token = "XXX"
+#   org = ""
