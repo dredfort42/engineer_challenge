@@ -17,10 +17,10 @@ services:
         restart: always
         networks:
             - nats_net
-        ports:
-            - '4222:4222'
-            # - '6222:6222'
-            # - '8222:8222'
+        # ports:
+        #     - '4222:4222'
+        #     - '6222:6222'
+        #     - '8222:8222'
 
     ### NATS test sub client
     #
@@ -37,16 +37,16 @@ services:
 
     ### NATS test pub client
     #
-    nats_box_pub:
-        image: natsio/nats-box
-        hostname: nats_box_pub
-        container_name: nats_box_pub
-        restart: always
-        networks:
-            - nats_net
-        depends_on:
-            - nats
-        command: nats pub -s nats:4222 event "Hello, World!"
+    # nats_box_pub:
+    #     image: natsio/nats-box
+    #     hostname: nats_box_pub
+    #     container_name: nats_box_pub
+    #     restart: always
+    #     networks:
+    #         - nats_net
+    #     depends_on:
+    #         - nats
+    #     command: nats pub -s nats:4222 event "Hello, World!"
 
     ### InfluxDB 2.0
     #
