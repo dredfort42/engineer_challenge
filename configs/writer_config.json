@@ -1,0 +1,5 @@
+{
+    "debug": true,
+    "nats_url": "nats://nats:4222",
+    "subject": "event"
+}

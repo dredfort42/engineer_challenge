@@ -24,16 +24,16 @@ services:
 
     ### NATS test sub client
     #
-    nats_box_sub:
-        image: natsio/nats-box
-        hostname: nats_box_sub
-        container_name: nats_box_sub
-        restart: always
-        networks:
-            - nats_net
-        depends_on:
-            - nats
-        command: nats sub -s nats:4222 event &
+    # nats_box_sub:
+    #     image: natsio/nats-box
+    #     hostname: nats_box_sub
+    #     container_name: nats_box_sub
+    #     restart: always
+    #     networks:
+    #         - nats_net
+    #     depends_on:
+    #         - nats
+    #     command: nats sub -s nats:4222 event &
 
     ### NATS test pub client
     #
@@ -94,6 +94,20 @@ services:
             - nats_net
         volumes:
             - ./configs/daemon_config.json:/app/config.json
+        depends_on:
+            - nats
+
+    ### Writer
+    #
+    writer:
+        build: ./Writer
+        hostname: writer
+        container_name: writer
+        restart: always
+        networks:
+            - nats_net
+        volumes:
+            - ./configs/writer_config.json:/app/config.json
         depends_on:
             - nats
 
