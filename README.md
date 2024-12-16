@@ -49,8 +49,8 @@ Usually, Docker Compose comes with Docker Desktop for Windows and macOS. If you 
 3.  Set the InfluxDB admin `username` and `password`:
 
     ```bash
-    echo "YourAdminUsernameForInfluxDB" > .env.influxdb2-admin-username &&
-    echo "YourAdminPasswordForInfluxDB" > .env.influxdb2-admin-password
+    echo -n "YourAdminUsernameForInfluxDB" > .env.influxdb2-admin-username &&
+    echo -n "YourAdminPasswordForInfluxDB" > .env.influxdb2-admin-password
     ```
 
     > Replace `YourAdminUsernameForInfluxDB`, and `YourAdminPasswordForInfluxDB` with your InfluxDB admin username and password.
@@ -58,7 +58,7 @@ Usually, Docker Compose comes with Docker Desktop for Windows and macOS. If you 
 4.  Set the InfluxDB admin `token`:
 
     ```bash
-    echo "YourTokenForInfluxDB" > .env.influxdb2-admin-token
+    echo -n "YourAdminTokenForInfluxDB" > .env.influxdb2-admin-token
     ```
 
 5.  Return to the project directory:
@@ -153,6 +153,12 @@ Minimal criticality for queries **_should be set_** as environment variable `MIN
 
 ## Run the Services
 
+To build the services, execute the following command:
+
+```bash
+docker-compose build
+```
+
 To run the services, execute the following command:
 
 ```bash
@@ -187,6 +193,16 @@ docker-compose top
 
 # Check statistics of all services
 docker-compose stats
+```
+
+To restart the services, execute the following command:
+
+```bash
+# Restart the services
+docker-compose restart
+
+# Or restart a specific service
+docker-compose restart <service_name>
 ```
 
 To stop the services, execute the following command:
