@@ -188,9 +188,6 @@ To chack the status of the services, execute the following command:
 # Check the status of all services
 docker-compose ps
 
-# Check resource usage of all services
-docker-compose top
-
 # Check statistics of all services
 docker-compose stats
 ```
