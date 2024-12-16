@@ -281,13 +281,15 @@ If you have any questions or need help, please feel free to contact me at [dredf
 ### Security tasks for this project:
 
 -   [+] Use different networks for the services.
+-   [+] Close the unnecessary ports for the services.
 -   [+] Use secrets for the sensitive data.
 -   [+] Use the latest versions of the base images.
 -   [+] Use the latest versions of the packages.
+-   [+] Log errors and security events for the services.
+-   [-] Use monitoring for the services.
 -   [-] Use different users for the services.
 -   [-] Use SSL/TLS for the services.
 -   [-] Use Hashicorp Vault for the secrets.
 -   [-] Use Unit tests for the services with coverage more than 80%.
--   [-] Use static code analysis for the services.
 -   [-] Use static security analysis for the services.
 -   [-] Use Integration tests for the services.
