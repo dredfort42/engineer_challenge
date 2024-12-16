@@ -11,8 +11,8 @@ services:
         restart: always
         networks:
             - nats_net
-        ports: # close ports in production
-            - '4222:4222'
+        # ports: # close ports in production
+        #     - '4222:4222'
         #     - '6222:6222'
         #     - '8222:8222'
 
@@ -70,8 +70,8 @@ services:
         restart: always
         networks:
             - influxdb2_net
-        ports: # close ports in production
-            - 8086:8086
+        # ports: # close ports in production
+        #     - 8086:8086
         environment:
             DOCKER_INFLUXDB_INIT_MODE: setup
             DOCKER_INFLUXDB_INIT_USERNAME_FILE: /run/secrets/influxdb2-admin-username
@@ -83,9 +83,9 @@ services:
             - influxdb2-admin-username
             - influxdb2-admin-password
             - influxdb2-admin-token
-        volumes:
-            - ./storage/influxdb2-data:/var/lib/influxdb2
-            - ./configs:/etc/influxdb2
+        # volumes: # uncomment for persistent storage
+        #     - ./storage/influxdb2-data:/var/lib/influxdb2
+        #     - ./configs:/etc/influxdb2
 
     ##### SERVICES #####
 
